@@ -1,10 +1,11 @@
 # data_generator.py
 import time
 from argparse import ArgumentParser
+from datetime import datetime
 
 import pandas as pd
-import psycopg2
 from sklearn.datasets import load_iris
+from sqlalchemy import create_engine, text
 
 
 def get_data():
@@ -20,25 +21,28 @@ def get_data():
     return df
 
 
-def create_table(db_connect):
-    create_table_query = """
-    CREATE TABLE IF NOT EXISTS iris_data (
-        id SERIAL PRIMARY KEY,
-        timestamp timestamp,
-        sepal_length float8,
-        sepal_width float8,
-        petal_length float8,
-        petal_width float8,
-        target int
-    );"""
-    print(create_table_query)
-    with db_connect.cursor() as cur:
-        cur.execute(create_table_query)
-        db_connect.commit()
+def create_table(engine):
+    """Create iris_data table using raw SQL query."""
+    create_table_query = text("""
+        CREATE TABLE IF NOT EXISTS iris_data (
+            id SERIAL PRIMARY KEY,
+            timestamp TIMESTAMP NOT NULL,
+            sepal_length FLOAT8 NOT NULL,
+            sepal_width FLOAT8 NOT NULL,
+            petal_length FLOAT8 NOT NULL,
+            petal_width FLOAT8 NOT NULL,
+            target INTEGER NOT NULL
+        );
+    """)
+
+    with engine.connect() as conn:
+        conn.execute(create_table_query)
+        conn.commit()
 
 
-def insert_data(db_connect, data):
-    insert_row_query = f"""
+def insert_data(engine, data):
+    """Insert a single row of data using SQL query."""
+    insert_query = f"""
     INSERT INTO iris_data
         (timestamp, sepal_length, sepal_width, petal_length, petal_width, target)
         VALUES (
@@ -50,15 +54,16 @@ def insert_data(db_connect, data):
             {data.target}
         );
     """
-    print(insert_row_query)
-    with db_connect.cursor() as cur:
-        cur.execute(insert_row_query)
-        db_connect.commit()
+    print(insert_query)
+    with engine.connect() as conn:
+        conn.execute(text(insert_query))
+        conn.commit()
 
 
-def generate_data(db_connect, df):
+def generate_data(engine, df):
+    """Continuously generate and insert random iris data samples."""
     while True:
-        insert_data(db_connect, df.sample(1).squeeze())
+        insert_data(engine, df.sample(1).squeeze())
         time.sleep(1)
 
 
@@ -67,13 +72,24 @@ if __name__ == "__main__":
     parser.add_argument("--db-host", dest="db_host", type=str, default="localhost")
     args = parser.parse_args()
 
-    db_connect = psycopg2.connect(
-        user="myuser",
-        password="mypassword",
-        host=args.db_host,
-        port=5432,
-        database="mydatabase",
+    # Create SQLAlchemy engine using connection URL
+    # Format: postgresql://user:password@host:port/database
+    db_url = (
+        f"postgresql://myuser:mypassword@{args.db_host}:5432/mydatabase"
     )
-    create_table(db_connect)
+    engine = create_engine(db_url, echo=False)
+
+    # Create table
+    create_table(engine)
+
+    # Load iris dataset
     df = get_data()
-    generate_data(db_connect, df)
+
+    # Start continuous data generation
+    print("Starting data generation... (Press Ctrl+C to stop)")
+    try:
+        generate_data(engine, df)
+    except KeyboardInterrupt:
+        print("\nData generation stopped.")
+    finally:
+        engine.dispose()
