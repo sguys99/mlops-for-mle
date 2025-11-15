@@ -1,8 +1,8 @@
 # data_generator.py
 import time
 from argparse import ArgumentParser
-from datetime import datetime
 
+import time
 import pandas as pd
 from sklearn.datasets import load_iris
 from sqlalchemy import create_engine, text
@@ -36,7 +36,7 @@ def create_table(engine):
     """
     print(create_table_query)
     with engine.connect() as conn:
-        conn.execute(create_table_query)
+        conn.execute(text(create_table_query))
         conn.commit()
 
 
@@ -56,7 +56,7 @@ def insert_data(engine, data):
     """
     print(insert_query)
     with engine.connect() as conn:
-        conn.execute(insert_query)
+        conn.execute(text(insert_query))
         conn.commit()
 
 
@@ -81,14 +81,14 @@ if __name__ == "__main__":
     # Create table
     create_table(engine)
 
-    # # Load iris dataset
-    # df = get_data()
+    # Load iris dataset
+    df = get_data()
 
-    # # Start continuous data generation
-    # print("Starting data generation... (Press Ctrl+C to stop)")
-    # try:
-    #     generate_data(engine, df)
-    # except KeyboardInterrupt:
-    #     print("\nData generation stopped.")
-    # finally:
-    #     engine.dispose()
+    # Start continuous data generation
+    print("Starting data generation... (Press Ctrl+C to stop)")
+    try:
+        generate_data(engine, df)
+    except KeyboardInterrupt:
+        print("\nData generation stopped.")
+    finally:
+        engine.dispose()
