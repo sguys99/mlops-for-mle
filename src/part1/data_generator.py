@@ -23,18 +23,18 @@ def get_data():
 
 def create_table(engine):
     """Create iris_data table using raw SQL query."""
-    create_table_query = text("""
+    create_table_query = """
         CREATE TABLE IF NOT EXISTS iris_data (
-            id SERIAL PRIMARY KEY,
-            timestamp TIMESTAMP NOT NULL,
-            sepal_length FLOAT8 NOT NULL,
-            sepal_width FLOAT8 NOT NULL,
-            petal_length FLOAT8 NOT NULL,
-            petal_width FLOAT8 NOT NULL,
-            target INTEGER NOT NULL
-        );
-    """)
-
+        id SERIAL PRIMARY KEY,
+        timestamp timestamp,
+        sepal_length float8,
+        sepal_width float8,
+        petal_length float8,
+        petal_width float8,
+        target int
+    );
+    """
+    print(create_table_query)
     with engine.connect() as conn:
         conn.execute(create_table_query)
         conn.commit()
@@ -56,7 +56,7 @@ def insert_data(engine, data):
     """
     print(insert_query)
     with engine.connect() as conn:
-        conn.execute(text(insert_query))
+        conn.execute(insert_query)
         conn.commit()
 
 
@@ -72,7 +72,6 @@ if __name__ == "__main__":
     parser.add_argument("--db-host", dest="db_host", type=str, default="localhost")
     args = parser.parse_args()
 
-    # Create SQLAlchemy engine using connection URL
     # Format: postgresql://user:password@host:port/database
     db_url = (
         f"postgresql://myuser:mypassword@{args.db_host}:5432/mydatabase"
@@ -82,14 +81,14 @@ if __name__ == "__main__":
     # Create table
     create_table(engine)
 
-    # Load iris dataset
-    df = get_data()
+    # # Load iris dataset
+    # df = get_data()
 
-    # Start continuous data generation
-    print("Starting data generation... (Press Ctrl+C to stop)")
-    try:
-        generate_data(engine, df)
-    except KeyboardInterrupt:
-        print("\nData generation stopped.")
-    finally:
-        engine.dispose()
+    # # Start continuous data generation
+    # print("Starting data generation... (Press Ctrl+C to stop)")
+    # try:
+    #     generate_data(engine, df)
+    # except KeyboardInterrupt:
+    #     print("\nData generation stopped.")
+    # finally:
+    #     engine.dispose()
