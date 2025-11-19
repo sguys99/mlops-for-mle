@@ -956,6 +956,7 @@ dependencies = [
     { name = "mlflow" },
     { name = "pandas" },
     { name = "psycopg2-binary" },
+    { name = "python-dotenv" },
     { name = "scikit-learn" },
     { name = "sqlalchemy" },
 ]
@@ -967,6 +968,7 @@ requires-dist = [
     { name = "mlflow", specifier = "==3.6.0" },
     { name = "pandas", specifier = ">=2.3.3" },
     { name = "psycopg2-binary", specifier = ">=2.9.11" },
+    { name = "python-dotenv", specifier = ">=1.2.1" },
     { name = "scikit-learn", specifier = ">=1.7.2" },
     { name = "sqlalchemy", specifier = ">=2.0.44" },
 ]
